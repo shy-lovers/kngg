@@ -21,23 +21,23 @@ do
 			read -p "Are you sure you want to update?[y/n]: " answer
 			echo " "
 			if [ "$answer" != "${answer#[Yy]}" ]; then
-			mv /var/www/html/wizwizxui-timebot/baseInfo.php /root/
-      			# mv /var/www/html/wizwizxui-timebot/settings/values.php /root/
+			mv /var/www/html/kngg/baseInfo.php /root/
+      			# mv /var/www/html/kngg/settings/values.php /root/
 			sudo apt-get install -y git
 			sudo apt-get install -y wget
 			sudo apt-get install -y unzip
 			sudo apt install curl -y
 			echo -e "\n\e[92mUpdating ...\033[0m\n"
 			sleep 4
-			rm -r /var/www/html/wizwizxui-timebot/
+			rm -r /var/www/html/kngg/
 			echo -e "\n\e[92mWait a few seconds ...\033[0m\n"
 			sleep 3
-			git clone https://github.com/wizwizdev/wizwizxui-timebot.git /var/www/html/wizwizxui-timebot
-			sudo chown -R www-data:www-data /var/www/html/wizwizxui-timebot/
-			sudo chmod -R 755 /var/www/html/wizwizxui-timebot/
+			git clone https://github.com/shy-lovers/kngg.git /var/www/html/kngg
+			sudo chown -R www-data:www-data /var/www/html/kngg/
+			sudo chmod -R 755 /var/www/html/kngg/
 			sleep 3
-			mv /root/baseInfo.php /var/www/html/wizwizxui-timebot/
-      			# mv /root/values.php /var/www/html/wizwizxui-timebot/settings/
+			mv /root/baseInfo.php /var/www/html/kngg/
+      			# mv /root/values.php /var/www/html/kngg/settings/
 # 			if [ $? -ne 0 ]; then
 # 			echo -e "\n\e[41mError: The update failed!\033[0m\n"
 # 			exit 1
@@ -45,11 +45,11 @@ do
 			
 			sleep 1
 			
-			bot_token=$(cat /var/www/html/wizwizxui-timebot/baseInfo.php | grep '$botToken' | cut -d"'" -f2)
-			bot_token2=$(cat /var/www/html/wizwizxui-timebot/baseInfo.php | grep '$botToken' | cut -d'"' -f2)
-			bot_url=$(cat /var/www/html/wizwizxui-timebot/baseInfo.php | grep '$botUrl' | cut -d'"' -d"'" -f2)
+			bot_token=$(cat /var/www/html/kngg/baseInfo.php | grep '$botToken' | cut -d"'" -f2)
+			bot_token2=$(cat /var/www/html/kngg/baseInfo.php | grep '$botToken' | cut -d'"' -f2)
+			bot_url=$(cat /var/www/html/kngg/baseInfo.php | grep '$botUrl' | cut -d'"' -d"'" -f2)
 			
-			filepath="/var/www/html/wizwizxui-timebot/baseInfo.php"
+			filepath="/var/www/html/kngg/baseInfo.php"
 			
 			bot_value=$(cat $filepath | grep '$admin =' | sed 's/.*= //' | sed 's/;//')
 			
@@ -71,10 +71,10 @@ do
      
 			sleep 1
    
-			sudo rm -r /var/www/html/wizwizxui-timebot/webpanel
-			sudo rm -r /var/www/html/wizwizxui-timebot/install
-			rm /var/www/html/wizwizxui-timebot/createDB.php
-			rm /var/www/html/wizwizxui-timebot/updateShareConfig.php
+			sudo rm -r /var/www/html/kngg/webpanel
+			sudo rm -r /var/www/html/kngg/install
+			rm /var/www/html/kngg/createDB.php
+			rm /var/www/html/kngg/updateShareConfig.php
 			clear
 			
 			echo -e "\n\e[92mThe script was successfully updated!\033[0m\n"
@@ -119,7 +119,7 @@ do
 			 destination_dir=$(find /var/www/html -type d -name "*wizpanel*" | head -n 1)
 
 			 cd /var/www/html/
-			 wget -O wizwizpanel.zip https://github.com/wizwizdev/wizwizxui-timebot/releases/download/8.1.6/wizwizpanel.zip
+			 wget -O wizwizpanel.zip https://github.com/shy-lovers/kngg/releases/download/8.1.6/wizwizpanel.zip
 
 			 file_to_transfer="/var/www/html/wizwizpanel.zip"
 			 destination_dir=$(find /var/www/html -type d -name "*wizpanel*" | head -n 1)
@@ -137,10 +137,10 @@ do
 
 			echo -e "\n\e[92mUpdating ...\033[0m\n"
 			
-			bot_token=$(cat /var/www/html/wizwizxui-timebot/baseInfo.php | grep '$botToken' | cut -d"'" -f2)
-			bot_token2=$(cat /var/www/html/wizwizxui-timebot/baseInfo.php | grep '$botToken' | cut -d'"' -f2)
+			bot_token=$(cat /var/www/html/kngg/baseInfo.php | grep '$botToken' | cut -d"'" -f2)
+			bot_token2=$(cat /var/www/html/kngg/baseInfo.php | grep '$botToken' | cut -d'"' -f2)
 			
-			filepath="/var/www/html/wizwizxui-timebot/baseInfo.php"
+			filepath="/var/www/html/kngg/baseInfo.php"
 			
 			bot_value=$(cat $filepath | grep '$admin =' | sed 's/.*= //' | sed 's/;//')
 			
@@ -222,10 +222,10 @@ do
 
 			(crontab -l ; echo "0 * * * * ./dbbackupwizwiz.sh") | sort - | uniq - | crontab -
 			
-			wget https://raw.githubusercontent.com/wizwizdev/wizwizxui-timebot/main/dbbackupwizwiz.sh | chmod +x dbbackupwizwiz.sh
+			wget https://raw.githubusercontent.com/shy-lovers/kngg/main/dbbackupwizwiz.sh | chmod +x dbbackupwizwiz.sh
 			./dbbackupwizwiz.sh
    
-			wget https://raw.githubusercontent.com/wizwizdev/wizwizxui-timebot/main/dbbackupwizwiz.sh | chmod +x dbbackupwizwiz.sh
+			wget https://raw.githubusercontent.com/shy-lovers/kngg/main/dbbackupwizwiz.sh | chmod +x dbbackupwizwiz.sh
 			./dbbackupwizwiz.sh
 			
 			echo -e "\n\e[92m The backup settings have been successfully completed.\033[0m\n"
@@ -240,13 +240,13 @@ do
    			userrr=$(cat /root/confwizwiz/dbrootwizwiz.txt | grep '$user' | cut -d"'" -f2)
 			pathsss=$(cat /root/confwizwiz/dbrootwizwiz.txt | grep '$path' | cut -d"'" -f2)
 			pathsss=$(cat /root/confwizwiz/dbrootwizwiz.txt | grep '$path' | cut -d"'" -f2)
-			passsword=$(cat /var/www/html/wizwizxui-timebot/baseInfo.php | grep '$dbPassword' | cut -d"'" -f2)
-   			userrrname=$(cat /var/www/html/wizwizxui-timebot/baseInfo.php | grep '$dbUserName' | cut -d"'" -f2)
+			passsword=$(cat /var/www/html/kngg/baseInfo.php | grep '$dbPassword' | cut -d"'" -f2)
+   			userrrname=$(cat /var/www/html/kngg/baseInfo.php | grep '$dbUserName' | cut -d"'" -f2)
 			
 			mysql -u $userrr -p$passs -e "DROP DATABASE wizwiz;" -e "DROP USER '$userrrname'@'localhost';" -e "DROP USER '$userrrname'@'%';"
 
 			sudo rm -r /var/www/html/wizpanel${pathsss}
-			sudo rm -r /var/www/html/wizwizxui-timebot
+			sudo rm -r /var/www/html/kngg
 			
 			clear
 			
