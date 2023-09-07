@@ -1193,7 +1193,6 @@ if(preg_match('/^createAccAmount(\d+)_(\d+)_(\d+)/',$userInfo['step'], $match) &
     	}
     	if(!$response->success){
             sendMessage('❌ | 😮 وای خطا داد لطفا سریع به مدیر بگو ...');
-            sendMessage("خطای سرور {$serverInfo['title']}:\n\n" . json_encode($response,488), null, null, $admin);
             break;
         }
     
@@ -2172,7 +2171,7 @@ if((preg_match('/^discountCustomPlanDay(\d+)/',$userInfo['step'], $match) || pre
 	    $temp[] = ['text' => $buttonValues['pay_with_wallet'],  'callback_data' => "payCustomWithWallet$hash_id"];
     }
     array_push($keyboard, $temp);
-    if(!preg_match('/^discountCustomPlanDay/', $userInfo['step'])) $keyboard[] = [['text' => " 🎁 نکنه کد تخفیف داری؟ ",  'callback_data' => "haveDiscountCustom_" . $rowId]];
+    if(!preg_match('/^discountCustomPlanDay/', $userInfo['step'])) $keyboard[] = [['text' => " 🎁 وارد کردن کد تخفیف ",  'callback_data' => "haveDiscountCustom_" . $rowId]];
 	$keyboard[] = [['text' => $buttonValues['cancel'], 'callback_data' => "mainMenu"]];
     $price = ($price == 0) ? 'رایگان' : number_format($price).' تومان ';
     sendMessage(str_replace(['VOLUME', 'DAYS', 'PLAN-NAME', 'PRICE', 'DESCRIPTION'], [$volume, $days, $name, $price, $desc], $mainValues['buy_subscription_detail']),json_encode(['inline_keyboard'=>$keyboard]), "HTML");
@@ -2397,7 +2396,7 @@ if((preg_match('/^discountSelectPlan(\d+)_(\d+)_(\d+)/',$userInfo['step'],$match
         }
         array_push($keyboard, $temp);
         
-        if(!preg_match('/^discountSelectPlan/', $userInfo['step'])) $keyboard[] = [['text' => " 🎁 نکنه کد تخفیف داری؟ ",  'callback_data' => "haveDiscountSelectPlan_" . $match[1] . "_" . $match[2] . "_" . $rowId]];
+        if(!preg_match('/^discountSelectPlan/', $userInfo['step'])) $keyboard[] = [['text' => " 🎁 وارد کردن کد تخفیف ",  'callback_data' => "haveDiscountSelectPlan_" . $match[1] . "_" . $match[2] . "_" . $rowId]];
 
     }
 	$keyboard[] = [['text' => $buttonValues['back_to_main'], 'callback_data' => "selectCategory{$call_id}_{$sid}"]];
@@ -2669,7 +2668,7 @@ if(preg_match('/payCustomWithCartToCart(.*)/',$data, $match)) {
     exit;
 }
 if(preg_match('/payCustomWithCartToCart(.*)/',$userInfo['step'], $match) and $text != $buttonValues['cancel']){
-    if(isset($update->message->photo)){
+    if(isset($update->message->text)){
         $stmt = $connection->prepare("SELECT * FROM `pays` WHERE `hash_id` = ?");
         $stmt->bind_param("s", $match[1]);
         $stmt->execute();
@@ -2717,7 +2716,9 @@ if(preg_match('/payCustomWithCartToCart(.*)/',$userInfo['step'], $match) and $te
                 ]
             ]
         ]);
-        sendPhoto($fileid, $msg,$keyboard, "HTML", $admin);
+        $infoc = strlen($text) > 1 ? $text : "$caption <a href='$fileurl'>&#8194;نمایش فیش</a>";
+        $msg .= "\nاطلاعات واریز: $text";
+        sendMessage($msg, $keyboard,"HTML",$admin);
     }else{
         sendMessage($mainValues['please_send_only_image']);
     }
@@ -3249,7 +3250,7 @@ if(preg_match('/payWithCartToCart(.*)/',$data,$match)) {
     exit;
 }
 if(preg_match('/payWithCartToCart(.*)/',$userInfo['step'], $match) and $text != $buttonValues['cancel']){
-    if(isset($update->message->photo)){
+    if(isset($update->message->text)){
         $stmt = $connection->prepare("SELECT * FROM `pays` WHERE `hash_id` = ?");
         $stmt->bind_param("s", $match[1]);
         $stmt->execute();
@@ -3301,7 +3302,10 @@ if(preg_match('/payWithCartToCart(.*)/',$userInfo['step'], $match) and $text != 
             ]
         ]);
         setUser('', 'temp');
-        $res = sendPhoto($fileid, $msg,$keyboard, "HTML", $admin);
+        $infoc = strlen($text) > 1 ? $text : "$caption <a href='$fileurl'>&#8194;نمایش فیش</a>";
+        $msg .= "\nاطلاعات واریز: $text";
+        sendMessage($msg, $keyboard,"HTML",$admin);
+        $res = sendMessage($msg, $keyboard,"HTML",$admin);
     }else{
         sendMessage($mainValues['please_send_only_image']);
     }
@@ -4915,7 +4919,6 @@ if(preg_match('/freeTrial(\d+)/',$data,$match)) {
 	}
 	if(!$response->success){
         alert('❌ | 😮 وای خطا داد لطفا سریع به مدیر بگو ...');
-        sendMessage("خطای سرور {$serverInfo['title']}:\n\n" . json_encode($response,488), null, null, $admin);
         exit;
     }
     alert('🚀 | 😍 در حال ارسال کانفیگ به مشتری ...');
@@ -6631,8 +6634,6 @@ if(preg_match('/^discountRenew(\d+)_(\d+)/',$userInfo['step'], $match) || preg_m
     $order = $stmt->get_result()->fetch_assoc();
     $stmt->close();
     $fid = $order['fileid'];
-    $agentBought = $order['agent_bought'];
-    $discountPercent = $userInfo['discount_percent'];
     
     $stmt = $connection->prepare("SELECT * FROM `server_plans` WHERE `id` = ? AND `active` = 1");
     $stmt->bind_param("i", $fid);
@@ -6640,7 +6641,7 @@ if(preg_match('/^discountRenew(\d+)_(\d+)/',$userInfo['step'], $match) || preg_m
     $respd = $stmt->get_result()->fetch_assoc();
     $stmt->close();
     $price = $respd['price'];
-    if($agentBought == true) $price -= ($price * $discountPercent / 100);
+
     if(!preg_match('/^discountRenew/', $userInfo['step'])){
         $hash_id = RandomString();
         $stmt = $connection->prepare("DELETE FROM `pays` WHERE `user_id` = ? AND `type` = 'RENEW_ACCOUNT' AND `state` = 'pending'");
@@ -6657,12 +6658,11 @@ if(preg_match('/^discountRenew(\d+)_(\d+)/',$userInfo['step'], $match) || preg_m
         $stmt->close();
     }else $price = $afterDiscount;
 
-    if($price == 0) $price = "رایگان";
-    else $price .= " تومان";
+
     $keyboard = array();
     $temp = array();
     if($botState['cartToCartState'] == "on"){
-	    $temp[] = ['text' => "💳 کارت به کارت مبلغ $price",  'callback_data' => "payRenewWithCartToCart$hash_id"];
+	    $temp[] = ['text' => " پرداخت ریالی ",  'callback_data' => "payRenewWithCartToCart$hash_id"];
     }
     if($botState['nowPaymentOther'] == "on"){
 	    $temp[] = ['text' => $buttonValues['now_payment_gateway'],  'url' => $botUrl . "pay/?nowpayment&hash_id=" . $hash_id];
@@ -6694,10 +6694,10 @@ if(preg_match('/^discountRenew(\d+)_(\d+)/',$userInfo['step'], $match) || preg_m
         $temp = array();
     }
     if($botState['walletState'] == "on"){
-	    $temp[] = ['text' => "پرداخت با موجودی مبلغ $price",  'callback_data' => "payRenewWithWallet$hash_id"];
+	    $temp[] = ['text' => "پرداخت با کیف پول",  'callback_data' => "payRenewWithWallet$hash_id"];
     }
     array_push($keyboard, $temp);
-    if(!preg_match('/^discountRenew/', $userInfo['step'])) $keyboard[] = [['text' => " 🎁 نکنه کد تخفیف داری؟ ",  'callback_data' => "haveDiscountRenew_" . $match[1] . "_" . $rowId]];
+    if(!preg_match('/^discountRenew/', $userInfo['step'])) $keyboard[] = [['text' => " 🎁 کد تخفیف دارم ",  'callback_data' => "haveDiscountRenew_" . $match[1] . "_" . $rowId]];
 
     $keyboard[] = [['text'=>$buttonValues['cancel'], 'callback_data'=> "mainMenu"]];
 
@@ -6715,7 +6715,7 @@ if(preg_match('/payRenewWithCartToCart(.*)/',$data,$match)) {
     exit;
 }
 if(preg_match('/payRenewWithCartToCart(.*)/',$userInfo['step'],$match) and $text != $buttonValues['cancel']){
-    if(isset($update->message->photo)){
+    if(isset($update->message->text)){
         $stmt = $connection->prepare("SELECT * FROM `pays` WHERE `hash_id` = ?");
         $stmt->bind_param("s", $match[1]);
         $stmt->execute();
@@ -6757,7 +6757,9 @@ if(preg_match('/payRenewWithCartToCart(.*)/',$userInfo['step'],$match) and $text
             ]
         ]);
     
-        sendPhoto($fileid, $msg,$keyboard, "HTML", $admin);
+        $infoc = strlen($text) > 1 ? $text : "$caption <a href='$fileurl'>&#8194;نمایش فیش</a>";
+        $msg .= "\nاطلاعات واریز: $text";
+        sendMessage($msg, $keyboard,"HTML",$admin);
         setUser();
     }else{
         sendMessage($mainValues['please_send_only_image']);
@@ -7292,7 +7294,7 @@ if(preg_match('/increaseADay(.*)/', $data, $match)){
     $stmt->execute();
     $res = $stmt->get_result();
     $stmt->close();
-    
+
     $stmt = $connection->prepare("SELECT * FROM `orders_list` WHERE `id` = ?");
     $stmt->bind_param("i", $match[1]);
     $stmt->execute();
@@ -7330,13 +7332,13 @@ if(preg_match('/selectPlanDayIncrease(?<orderId>.+)_(?<dayId>.+)/',$data,$match)
     $stmt->close();
     $planprice = $res['price'];
     
-    $stmt = $connection->prepare("SELECT * FROM `orders_list` WHERE `id` = ?");
+$stmt = $connection->prepare("SELECT * FROM `orders_list` WHERE `id` = ?");
     $stmt->bind_param("i", $match['orderId']);
     $stmt->execute();
     $orderInfo = $stmt->get_result()->fetch_assoc();
     $stmt->close();
     $agentBought = $orderInfo['agent_bought'];
-    
+
     if($agentBought == true) $planprice -= ($planprice * $userInfo['discount_percent'] / 100);
     
     
@@ -7403,7 +7405,7 @@ if(preg_match('/payIncreaseDayWithCartToCart(.*)/',$data,$match)) {
     exit;
 }
 if(preg_match('/payIncreaseDayWithCartToCart(.*)/',$userInfo['step'], $match) and $text != $buttonValues['cancel']){
-    if(isset($update->message->photo)){
+    if(isset($update->message->text)){
         $stmt = $connection->prepare("SELECT * FROM `pays` WHERE `hash_id` = ? AND `state` = 'pending'");
         $stmt->bind_param("s", $match[1]);
         $stmt->execute();
@@ -7455,7 +7457,9 @@ if(preg_match('/payIncreaseDayWithCartToCart(.*)/',$userInfo['step'], $match) an
         ]);
 
 
-        sendPhoto($fileid, $msg,$keyboard, "HTML", $admin);
+        $infoc = strlen($text) > 1 ? $text : "$caption <a href='$fileurl'>&#8194;نمایش فیش</a>";
+        $msg .= "\nاطلاعات واریز: $text";
+        sendMessage($msg, $keyboard,"HTML",$admin);
         setUser();
     }else{ 
         sendMessage($mainValues['please_send_only_image']);
@@ -7630,7 +7634,7 @@ if(preg_match('/^increaseAVolume(.*)/', $data, $match)){
     $stmt->execute();
     $res = $stmt->get_result();
     $stmt->close();
-    
+
     $stmt = $connection->prepare("SELECT * FROM `orders_list` WHERE `id` = ?");
     $stmt->bind_param("i", $match[1]);
     $stmt->execute();
@@ -7669,7 +7673,7 @@ if(preg_match('/increaseVolumePlan(?<orderId>.+)_(?<volumeId>.+)/',$data,$match)
     $planprice = $res['price'];
     $plangb = $res['volume'];
     
-    $stmt = $connection->prepare("SELECT * FROM `orders_list` WHERE `id` = ?");
+$stmt = $connection->prepare("SELECT * FROM `orders_list` WHERE `id` = ?");
     $stmt->bind_param("i", $match['orderId']);
     $stmt->execute();
     $orderInfo = $stmt->get_result()->fetch_assoc();
@@ -7694,13 +7698,13 @@ if(preg_match('/increaseVolumePlan(?<orderId>.+)_(?<volumeId>.+)/',$data,$match)
     
     $keyboard = array();
     $temp = array();
-    
+
     if($planprice == 0) $planprice = ' رایگان';
     else $planprice = " " . number_format($planprice) . " تومان";
     
     
     if($botState['cartToCartState'] == "on"){
-	    $temp[] = ['text' => $buttonValues['cart_to_cart'] . $planprice,  'callback_data' => "payIncreaseWithCartToCart$hash_id"];
+	    $temp[] = ['text' => $buttonValues['cart_to_cart'] . number_format($planprice) . " تومان",  'callback_data' => "payIncreaseWithCartToCart$hash_id"];
     }
     if($botState['nowPaymentOther'] == "on"){
 	    $temp[] = ['text' => $buttonValues['now_payment_gateway'],  'url' => $botUrl . "pay/?nowpayment&hash_id=" . $hash_id];
@@ -7731,7 +7735,7 @@ if(preg_match('/increaseVolumePlan(?<orderId>.+)_(?<volumeId>.+)/',$data,$match)
         $temp = array();
     }
     if($botState['walletState'] == "on"){
-	    $temp[] = ['text' => "💰پرداخت با موجودی  " . $planprice,  'callback_data' => "payIncraseWithWallet$hash_id"];
+	    $temp[] = ['text' => "پرداخت با کیف پول  " . number_format($planprice) . " تومان",  'callback_data' => "payIncraseWithWallet$hash_id"];
     }
     array_push($keyboard, $temp);
     $keyboard[] = [['text'=>$buttonValues['cancel'], 'callback_data'=> "mainMenu"]];
@@ -7745,7 +7749,7 @@ if(preg_match('/payIncreaseWithCartToCart(.*)/',$data)) {
     exit;
 }
 if(preg_match('/payIncreaseWithCartToCart(.*)/',$userInfo['step'],$match) and $text != $buttonValues['cancel']){
-    if(isset($update->message->photo)){
+    if(isset($update->message->text)){
         $stmt = $connection->prepare("SELECT * FROM `pays` WHERE `hash_id` = ? AND `state` = 'pending'");
         $stmt->bind_param("s", $match[1]);
         $stmt->execute();
@@ -7796,7 +7800,9 @@ if(preg_match('/payIncreaseWithCartToCart(.*)/',$userInfo['step'],$match) and $t
             ]
         ]);
 
-        sendPhoto($fileid, $msg,$keyboard, "HTML", $admin);
+        $infoc = strlen($text) > 1 ? $text : "$caption <a href='$fileurl'>&#8194;نمایش فیش</a>";
+        $msg .= "\nاطلاعات واریز: $text"; 
+        sendMessage($msg, $keyboard,"HTML",$admin);
         setUser();
     }else{
         sendMessage($mainValues['please_send_only_image']);
@@ -8744,10 +8750,13 @@ if($data == 'reciveApplications') {
     $keyboard[] = ['text'=>$buttonValues['back_to_main'],'callback_data'=>"mainMenu"];
     $keyboard = array_chunk($keyboard,1); 
     editText($message_id, "
-🔸می توانید به راحتی همه فایل ها را (به صورت رایگان) دریافت کنید
-📌 شما میتوانید برای راهنمای اتصال به سرویس کانال رسمی مارا دنبال کنید و همچنین از دکمه های زیر میتوانید برنامه های مورد نیاز هر سیستم عامل را دانلود کنید
+🔰 با توجه به سیستم عامل خود یکی از برنامه های زیر را دانلود کنید و طبق آموزش لینک پایین به سرور خریداری شده متصل بشوید.
 
-✅ پیشنهاد ما برنامه V2rayng است زیرا کار با آن ساده است و برای تمام سیستم عامل ها قابل اجرا است، میتوانید به بخش سیستم عامل مورد نظر مراجعه کنید و لینک دانلود را دریافت کنید
+♻️ همچین با استفاده از لینک سابسکریبشن قادر خواهید بود بدون مراجعه به ربات از طریق برنامه v2ray لینک های خود را اپدیت کنید.
+• در پنل کاربری خود لینک هوشمند را کپی کنید و وارد برنامه v2ray بشید ، وارد سه خط منوی بالای برنامه بشید و در بخش subscription Group Setting روی علامت + بزنید . 
+• در این بخش ابتدا یک اسم دلخواه بگذارید و لینک را در قسمت optional URL قرار و ذخیره کنید.
+
+• برای آپدیت کردن در صفحه اصلی برنامه روی سه نقطه بزنید و با آخرین گزینه Update Subscription سرورهای خود را آپدیت کنید.
 ", json_encode(['inline_keyboard'=>$keyboard]));
 }
 if ($text == $buttonValues['cancel']) {
